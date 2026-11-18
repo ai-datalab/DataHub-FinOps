@@ -77,7 +77,8 @@ def replace_once(text: str, old: str, new: str, label: str, count: int = 1) -> s
 def back_link_html(url: str | None) -> str:
     if not url:
         return ""
-    if not url.startswith(("/", "https://")) or any(char in url for char in "\"'<>"):
+    if (not url.startswith(("/", "https://")) or url.startswith("//")
+            or any(char in url for char in "\"'<>")):
         raise SystemExit("--back-link must be a site path or https URL without quotes or angle brackets.")
     return f' <a href="{url}">All dashboard demos</a>'
 
@@ -96,6 +97,11 @@ def fetch_pyodide(cache: Path, local: Path | None) -> Path:
     return local
 
 
+def copy_text(source: Path, target: Path) -> None:
+    # Universal-newline read, LF write: identical bytes whatever the checkout's line endings.
+    target.write_bytes(source.read_text(encoding="utf-8").encode("utf-8"))
+
+
 def build(out: Path, tgz: Path, back_link: str | None = None) -> None:
     if out.exists():
         shutil.rmtree(out)
@@ -112,12 +118,12 @@ def build(out: Path, tgz: Path, back_link: str | None = None) -> None:
         js = replace_once(js, old, new, "dashboard.js", count)
     (out / "dashboard.js").write_bytes(js.encode("utf-8"))
     for name in ("charts.js", "dashboard.css"):
-        shutil.copy2(web / name, out / name)
+        copy_text(web / name, out / name)
     for name in ("demo-shim.js", "demo.css"):
-        shutil.copy2(REPO / "demo" / name, out / name)
+        copy_text(REPO / "demo" / name, out / name)
 
     for source in (APP / "focus_core.py", APP / "ai_sample.py", REPO / "demo" / "demo_api.py"):
-        shutil.copy2(source, out / "python" / source.name)
+        copy_text(source, out / "python" / source.name)
 
     (out / "sample.csv").write_bytes(scenario_csv().encode("utf-8"))
     (out / "ai-sample.csv").write_bytes(sample_csv().encode("utf-8"))
@@ -128,10 +134,13 @@ def build(out: Path, tgz: Path, back_link: str | None = None) -> None:
         for name in PYODIDE_FILES:
             member = archive.extractfile(f"package/{name}")
             (out / "pyodide" / name).write_bytes(member.read())
-    (out / "pyodide" / "NOTICE.txt").write_text(
+    (out / "pyodide" / "NOTICE.txt").write_bytes((
         f"Pyodide {PYODIDE_VERSION} (MPL-2.0), unmodified. Source: https://github.com/pyodide/pyodide\n"
-        "Licence: https://www.mozilla.org/en-US/MPL/2.0/\n",
-        encoding="utf-8")
+        "Licence: https://www.mozilla.org/en-US/MPL/2.0/\n"
+        "It includes CPython 3.13.2 and its standard library (PSF License Agreement:\n"
+        "https://docs.python.org/3.13/license.html) and Emscripten 4.0.9 runtime code\n"
+        "(MIT / University of Illinois/NCSA: https://github.com/emscripten-core/emscripten/blob/main/LICENSE).\n"
+    ).encode("utf-8"))
     sums = [f"{hashlib.sha256(path.read_bytes()).hexdigest()}  {path.relative_to(out).as_posix()}"
             for path in sorted(out.rglob("*")) if path.is_file()]
     (out / "SHA256SUMS.txt").write_bytes(("\n".join(sums) + "\n").encode("utf-8"))
