@@ -1,0 +1,7 @@
+#demo-banner {
+  position: sticky; top: 0; z-index: 50; margin: 0; padding: 0.55rem 1rem;
+  background: #eef5ff; color: #0b3d91; border-bottom: 1px solid #b9d3f5;
+  font: 600 0.85rem/1.3 system-ui, sans-serif; text-align: center;
+}
+#demo-banner.failed { background: #fdecea; color: #8a1c13; border-color: #f2b8b3; }
+#demo-banner[hidden] { display: none; }

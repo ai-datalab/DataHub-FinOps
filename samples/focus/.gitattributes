@@ -1,0 +1,2 @@
+# Preserve upstream bytes and the documented SHA-256 on every platform.
+focus_sample.csv -text

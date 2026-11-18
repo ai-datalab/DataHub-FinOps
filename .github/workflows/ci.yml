@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: python -m pip install pytest
+      - run: python -m pytest app/tests demo/tests -q
+      - run: node --check app/web/dashboard.js && node --check app/web/charts.js && node --check demo/demo-shim.js
+      # Downloads Pyodide and fails unless it matches the pinned integrity hash.
+      - run: python demo/build_demo.py --zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DataHub-FinOps-demo
+          path: dist/DataHub-FinOps-demo.zip
