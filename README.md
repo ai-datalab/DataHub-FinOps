@@ -22,9 +22,10 @@ estimated **licence cost** layer kept apart from billed totals so seats are neve
 
 ## Try it
 
-**Online demo.** Build the static demo and put the `dist/demo` folder on any web host. It runs the same
-Python in the browser, so there is no server, and files a visitor imports are never uploaded.
-See [demo/README.md](demo/README.md) for building it, embedding it in a page and hosting notes.
+**Online demo.** Open the [live demo](https://ai-datalab.github.io/demo/datahub-finops/). It needs no sign-in
+and shows invented data only. It runs the same Python in the browser, so there is no server, and files a visitor
+imports are never uploaded. To host your own copy, build the static demo and put the `dist/demo` folder on any
+web host. See [demo/README.md](demo/README.md) for building it, embedding it in a page and hosting notes.
 
 **On your machine.** Python 3.10 or newer, no packages needed:
 
