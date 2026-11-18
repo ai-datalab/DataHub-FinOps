@@ -11,7 +11,7 @@ from urllib.parse import parse_qs
 from ai_sample import sample_csv
 from focus_core import ImportFailure, MAX_BYTES, dashboard, parse_files
 
-CLOUD_SAMPLE_NAME = "focus_sample.csv"
+CLOUD_SAMPLE_NAME = "multi-cloud-scenario.csv"
 _state: dict = {}
 
 
@@ -19,15 +19,16 @@ def sample_dataset(kind="ai"):
     if kind not in ("ai", "cloud"):
         raise ValueError("Choose the ai or cloud sample.")
     content = sample_csv() if kind == "ai" else _state["cloud_csv"]
-    name = "ai-scenario.csv" if kind == "ai" else CLOUD_SAMPLE_NAME
+    name = "ai-scenario.csv" if kind == "ai" else _state["cloud_name"]
     dataset = parse_files([{"name": name, "content": content}], f"{kind}-sample")
     dataset["sample"] = True
     dataset["sampleKind"] = kind
     return dataset
 
 
-def start(cloud_csv: str, native_json: str) -> None:
+def start(cloud_csv: str, native_json: str, cloud_name: str = CLOUD_SAMPLE_NAME) -> None:
     _state["cloud_csv"] = cloud_csv
+    _state["cloud_name"] = cloud_name
     _state["native"] = json.loads(native_json)
     _state["dataset"] = sample_dataset("ai")
 

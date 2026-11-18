@@ -14,7 +14,7 @@ billing account or provider API. See [what is not built](#not-built-yet).
 | View | What it shows | Sample data |
 |---|---|---|
 | **AI FinOps** | Claude / OpenAI / Azure OpenAI spend, tokens, models and workloads | Synthetic scenario, October 2026 |
-| **Multi-cloud FinOps** | AWS, Microsoft and Oracle spend on one set of billing fields | 1,000 rows of the official FinOps Foundation sample |
+| **Multi-cloud FinOps** | AWS, Microsoft, Google Cloud and Oracle spend on one set of billing fields | Local app: 1,000 anonymised rows of the official FinOps Foundation sample. Online demo: an invented scenario, October 2026 |
 
 Both views share the same filters and cost explorer, and add a month-to-date run-rate. A separate **Product usage**
 section covers Copilot Cowork, Copilot Studio, GitHub Copilot and Azure AI Foundry usage, plus an
@@ -56,6 +56,7 @@ Details, data rules and the optional Fabric loader are in [app/README.md](app/RE
   are fictional.
 - `samples/focus/focus_sample.csv` is the unmodified FinOps Foundation FOCUS sample, used under
   [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). See [samples/focus/README.md](samples/focus/README.md).
+  It is used only by the local app; the online demo uses the invented `demo/cloud_scenario.py` instead.
 - The online demo bundles [Pyodide](https://pyodide.org/) 0.29.5 (MPL-2.0), unmodified.
 - `app/exporter_adapter.py` reads output from [focus-exporter](https://github.com/baselinehq/focus-exporter)
   (AGPL-3.0, with a commercial option). It does not bundle or run it; review its terms before distributing

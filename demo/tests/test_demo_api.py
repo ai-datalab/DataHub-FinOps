@@ -1,8 +1,11 @@
 """The browser demo API must answer exactly like the local server."""
 from __future__ import annotations
 
+import csv
+import io
 import json
 import sys
+from decimal import Decimal
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -10,15 +13,16 @@ sys.path.insert(0, str(ROOT / "app"))
 sys.path.insert(0, str(ROOT / "demo"))
 
 import demo_api  # noqa: E402
+from cloud_scenario import ORIGIN, scenario_csv  # noqa: E402
 from consumption_sample import load_consumption_sample  # noqa: E402
-from focus_core import dashboard  # noqa: E402
+from focus_core import dashboard, parse_files  # noqa: E402
 from server import SAMPLE, sample_dataset  # noqa: E402
 
 NATIVE = load_consumption_sample()
 
 
 def start():
-    demo_api.start(SAMPLE.read_text(encoding="utf-8"), json.dumps(NATIVE))
+    demo_api.start(SAMPLE.read_text(encoding="utf-8"), json.dumps(NATIVE), SAMPLE.name)
 
 
 def call(method, path, query="", body=""):
@@ -63,3 +67,19 @@ def test_errors_match_the_server_contract():
     assert call("POST", "/api/sample", body="[]")[0] == 400
     assert call("POST", "/api/sample", body=json.dumps({"kind": "other"}))[0] == 400
     assert call("POST", "/api/import", body="")[0] == 413
+
+
+def test_multi_cloud_scenario_is_invented_valid_and_exercises_every_charge_type():
+    content = scenario_csv()
+    assert content == scenario_csv()
+    rows = list(csv.DictReader(io.StringIO(content)))
+    assert {row["x_DataOrigin"] for row in rows} == {ORIGIN}
+    assert all(row["BillingAccountId"].startswith("demo-") for row in rows)
+    dataset = parse_files([{"name": "multi-cloud-scenario.csv", "content": content}], "cloud-sample")
+    assert not dataset["warnings"]
+    assert dashboard(dataset, {})["options"]["provider"] == ["AWS", "Google Cloud", "Microsoft", "Oracle"]
+    assert {row["ChargeCategory"] for row in rows} == {"Usage", "Purchase", "Credit"}
+    covered = [row for row in rows if row["CommitmentDiscountStatus"] == "Used"]
+    purchase = next(row for row in rows if row["ChargeCategory"] == "Purchase")
+    # The reservation is billed once and amortised over the covered usage, so effective totals match.
+    assert sum(Decimal(row["EffectiveCost"]) for row in covered) == Decimal(purchase["BilledCost"])
